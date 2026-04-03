@@ -1,0 +1,5 @@
+.login-container.hidden,
+.app-container.hidden,
+.hidden {
+    display: none !important;
+}

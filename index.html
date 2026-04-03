@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Reward Picker</title>
+    <meta name="theme-color" content="#1e1e2f">
+    <link rel="icon" type="image/x-icon" href="media/ABMinistry.jpeg">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+    <!-- Base -->
+    <link rel="stylesheet" href="styles/base/tokens.css">
+    <link rel="stylesheet" href="styles/base/reset.css">
+    <link rel="stylesheet" href="styles/base/layout.css">
+    <!-- Utilities -->
+    <link rel="stylesheet" href="styles/utils/helpers.css">
+    <!-- Components -->
+    <link rel="stylesheet" href="styles/components/buttons.css">
+    <link rel="stylesheet" href="styles/components/wheel.css">
+    <link rel="stylesheet" href="styles/components/instructions.css">
+    <link rel="stylesheet" href="styles/components/modal.css">
+    <link rel="stylesheet" href="styles/components/toast.css">
+    <link rel="stylesheet" href="styles/components/sidebar.css">
+    <!-- Views -->
+    <link rel="stylesheet" href="styles/views/login.css">
+    <link rel="stylesheet" href="styles/views/admin.css">
+    <!-- html2canvas for image generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+
+<body>
+    <div id="toast-notification" class="toast-notification toast-hidden">
+        <span id="toast-message"></span>
+    </div>
+
+    <!-- Loading screen shown while Google data data is being fetched -->
+    <div id="loading-screen" style="
+        position:fixed; inset:0; background:var(--bg-color);
+        display:flex; flex-direction:column; justify-content:center; align-items:center;
+        z-index:9999; gap:18px;
+    ">
+        <div
+            style="width:52px; height:52px; border:5px solid rgba(255,255,255,0.1); border-top-color:var(--secondary-color); border-radius:50%; animation:spin-loader 0.8s linear infinite;">
+        </div>
+        <p style="color:#a4b0be; font-size:1rem; font-family:'Outfit',sans-serif;">Loading...</p>
+    </div>
+    <style>
+        @keyframes spin-loader {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .icon-inline {
+            vertical-align: middle;
+            margin-right: 6px;
+            position: relative;
+            top: -1px;
+        }
+    </style>
+    <div id="login-container" class="login-container">
+        <div class="login-box" id="user-login-box"></div>
+        <div class="login-box hidden" id="admin-login-box"></div>
+    </div>
+    </div>
+
+    <div id="admin-dashboard" class="app-container hidden">
+        <nav class="top-nav">
+            <div class="nav-brand">
+                <img src="media/ABMinistry.jpeg" alt="Logo">
+            </div>
+            <div class="nav-actions">
+                <span id="admin-greeting" class="user-greeting"></span>
+                <button class="hamburger-btn"
+                    onclick="document.getElementById('admin-sidebar-overlay').classList.add('active'); document.getElementById('admin-sidebar').classList.add('active');">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+        </nav>
+
+        <main id="admin-users-view"
+            style="align-items: stretch; padding: 0 5px; flex-direction:column; margin-top:15px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <h2 style="margin:0; font-size:1.4rem; color:var(--secondary-color);">Users</h2>
+                <button class="btn" onclick="window.__openUserModal()"
+                    style="padding:10px 18px; font-size:0.85rem; background:var(--primary-color); color:#000; font-weight:800; border-radius:8px;">Add
+                    User</button>
+            </div>
+            <div style="position:relative; width:100%; margin-bottom:12px;">
+                <svg style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:#a4b0be;"
+                    width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input type="text" id="admin-search" placeholder="Search by name or number..."
+                    style="width:100%; padding:12px 15px 12px 38px; border-radius:8px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.07); color:#fff; font-family:inherit; font-size:0.95rem; box-sizing:border-box; outline:none;" />
+            </div>
+            <div class="admin-filter-tabs" id="admin-filter-tabs">
+                <button class="filter-tab active" data-filter="all">All</button>
+                <button class="filter-tab" data-filter="pending">Pending</button>
+                <button class="filter-tab" data-filter="paired">Paired</button>
+            </div>
+            <div id="admin-user-list" class="admin-list"></div>
+        </main>
+
+        <main id="admin-events-view" class="hidden"
+            style="align-items: stretch; padding: 0 5px; flex-direction:column; margin-top:15px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <h2 style="margin:0; font-size:1.4rem; color:var(--secondary-color);">Manage Events</h2>
+                <button class="btn" onclick="window.__openEventModal()"
+                    style="padding:10px 18px; font-size:0.85rem; background:var(--primary-color); color:#000; font-weight:800; border-radius:8px;">Add
+                    Event</button>
+            </div>
+            <div style="position:relative; width:100%; margin-bottom:12px;">
+                <svg style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:#a4b0be;"
+                    width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input type="text" id="admin-event-search" placeholder="Search events by name..."
+                    style="width:100%; padding:12px 15px 12px 38px; border-radius:8px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.07); color:#fff; font-family:inherit; font-size:0.95rem; box-sizing:border-box; outline:none;" />
+            </div>
+            <div class="admin-filter-tabs" id="admin-event-filter-tabs">
+                <button class="filter-tab active" data-filter="all">All</button>
+                <button class="filter-tab" data-filter="ongoing">Ongoing</button>
+                <button class="filter-tab" data-filter="upcoming">Upcoming</button>
+                <button class="filter-tab" data-filter="past">Past</button>
+            </div>
+            <div id="admin-events-list" class="admin-list"></div>
+        </main>
+
+        <!-- Admin Sidebar -->
+        <div id="admin-sidebar-overlay" class="sidebar-overlay"
+            onclick="this.classList.remove('active'); document.getElementById('admin-sidebar').classList.remove('active');">
+        </div>
+        <div id="admin-sidebar" class="app-sidebar">
+            <div class="sidebar-header">
+                <h3>Admin Menu</h3>
+                <button class="close-sidebar-btn"
+                    onclick="document.getElementById('admin-sidebar-overlay').classList.remove('active'); document.getElementById('admin-sidebar').classList.remove('active');">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="sidebar-content">
+                <button id="admin-btn-users" class="sidebar-menu-item active">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                    <span>Manage Users</span>
+                </button>
+                <button id="admin-btn-events" class="sidebar-menu-item">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                    <span>Events</span>
+                </button>
+                <button id="admin-dash-logout" class="sidebar-menu-item logout-variant" style="margin-top:20px;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16 17 21 12 16 7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                    <span>Log Out</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="app-container hidden" id="app-container">
+        <nav class="top-nav">
+            <div class="nav-brand">
+                <img src="media/ABMinistry.jpeg" alt="Logo">
+            </div>
+            <div class="nav-actions">
+                <span id="user-greeting" class="user-greeting"></span>
+                <button class="hamburger-btn"
+                    onclick="document.getElementById('user-sidebar-overlay').classList.add('active'); document.getElementById('user-sidebar').classList.add('active');">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+        </nav>
+
+        <header>
+            <h1 style="font-size: 1.8rem;">Gift exchange</h1>
+            <p>Spin to reveal your partner for the gift sharing!</p>
+            <div id="pair-result-container" class="pair-result-container hidden"></div>
+        </header>
+
+        <main id="wheel-main">
+            <div class="wheel-container">
+                <canvas id="wheel" width="320" height="320"></canvas>
+                <div class="spin-btn" id="spin-btn">Spin</div>
+                <div class="pointer">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="var(--primary-color)"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 21L20 9L4 9L12 21Z" />
+                    </svg>
+                </div>
+            </div>
+
+            <h3 id="welcome-instruction-title"
+                style="color: var(--secondary-color); margin-bottom: 10px; font-size: 1.1rem; display:flex; align-items:center;">
+                <svg class="icon-inline" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                    style="color:var(--primary-color); margin-right:8px;">
+                    <polyline points="20 12 20 22 4 22 4 12"></polyline>
+                    <rect x="2" y="7" width="20" height="5"></rect>
+                    <line x1="12" y1="22" x2="12" y2="7"></line>
+                    <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"></path>
+                    <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"></path>
+                </svg>
+                Welcome to the gift exchange!
+            </h3>
+            <p style="margin-bottom: 12px; font-weight: 600; color: #a4b0be;">How it works:</p>
+            <ul style="list-style: none; padding: 0; margin: 0; color: #fcfcfc;">
+                <li style="margin-bottom: 10px; display: flex; gap: 10px;">
+                    <span style="color: var(--primary-color);">•</span>
+                    <span>Flick the wheel or tap <strong>Spin</strong> to discover your partner.</span>
+                </li>
+                <li style="margin-bottom: 10px; display: flex; gap: 10px;">
+                    <span style="color: var(--primary-color);">•</span>
+                    <span>The wheel will randomly pair you with someone special!</span>
+                </li>
+                <li style="margin-bottom: 10px; display: flex; gap: 10px;">
+                    <span style="color: var(--primary-color);">•</span>
+                    <span>You can only spin <strong>once</strong>. Your pairing is final.</span>
+                </li>
+                <li style="margin-bottom: 10px; display: flex; gap: 10px;">
+                    <span style="color: var(--primary-color);">•</span>
+                    <span>After spinning, you can securely send them MoMo or a physical gift.</span>
+                </li>
+            </ul>
+    </div>
+    </main>
+
+    <!-- User Sidebar -->
+    <div id="user-sidebar-overlay" class="sidebar-overlay"
+        onclick="this.classList.remove('active'); document.getElementById('user-sidebar').classList.remove('active');">
+    </div>
+    <div id="user-sidebar" class="app-sidebar">
+        <div class="sidebar-header">
+            <h3>Menu</h3>
+            <button class="close-sidebar-btn"
+                onclick="document.getElementById('user-sidebar-overlay').classList.remove('active'); document.getElementById('user-sidebar').classList.remove('active');">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+        <div class="sidebar-content">
+            <button id="change-password-btn" class="sidebar-menu-item"
+                onclick="document.getElementById('user-sidebar-overlay').click()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+                <span>Change password</span>
+            </button>
+            <div class="sidebar-menu-item no-hover"
+                style="display:flex; justify-content:space-between; align-items:center; cursor:default;">
+                <div style="display:flex; align-items:center; gap:15px;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="9 11 12 14 22 4"></polyline>
+                        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                    </svg>
+                    <span>Play for fun</span>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="test-mode-toggle">
+                    <span class="slider round"></span>
+                </label>
+            </div>
+            <button id="logout-btn" class="sidebar-menu-item logout-variant"
+                onclick="document.getElementById('user-sidebar-overlay').click()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                    <polyline points="16 17 21 12 16 7"></polyline>
+                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                </svg>
+                <span>Log out</span>
+            </button>
+        </div>
+    </div>
+
+    </div>
+
+    <!-- Custom confirm dialog -->
+    <div id="confirm-overlay" class="confirm-overlay hidden">
+        <div class="confirm-box">
+            <p id="confirm-message" class="confirm-message">Are you sure?</p>
+            <div class="confirm-actions">
+                <button id="confirm-yes" class="btn confirm-yes-btn">Yes, reset</button>
+                <button id="confirm-no" class="btn confirm-no-btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Change phone modal -->
+    <div id="change-phone-overlay" class="confirm-overlay hidden">
+        <div class="confirm-box">
+            <p class="confirm-message" id="change-phone-title">Change password for user</p>
+            <p id="change-phone-error" class="hidden error-text"
+                style="margin-bottom:24px; text-align:left; font-size:0.85rem; line-height:1.4;">Please
+                enter a valid password (min. 4 characters).</p>
+            <div class="password-wrapper" style="margin-bottom:18px;">
+                <input type="password" id="new-phone-input" placeholder="New password"
+                    style="width:100%; padding:12px 15px 12px 15px; padding-right:45px; border-radius:8px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.07); color:#fff; font-family:inherit; font-size:0.95rem; box-sizing:border-box; outline:none;" />
+                <div class="toggle-password" id="toggle-modal-pass" style="right:12px; margin-top:0;">
+                    <svg class="eye-open" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor"
+                        stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    <svg class="eye-closed hidden" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor"
+                        stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path
+                            d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24">
+                        </path>
+                        <line x1="1" y1="1" x2="23" y2="23"></line>
+                    </svg>
+                </div>
+            </div>
+            <div class="confirm-actions">
+                <button id="change-phone-save" class="btn confirm-yes-btn"
+                    style="background: var(--secondary-color); color:#1e1e2f;">Save</button>
+                <button id="change-phone-cancel" class="btn confirm-no-btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom alert dialog -->
+    <div id="alert-overlay" class="confirm-overlay hidden">
+        <div class="confirm-box" style="text-align: left; position:relative; padding-top:20px;">
+            <button id="alert-close-btn" style="position:absolute; top:12px; right:15px; background:none; border:none; color:#a4b0be; cursor:pointer; font-size:1.8rem; line-height:1;">&times;</button>
+            <div id="alert-header-box" style="display:flex; align-items:center; gap:12px; margin-bottom:20px; padding-right:30px;">
+                 <img src="media/ABMinistry.jpeg" style="width:30px; height:30px; border-radius:50%; border:1px solid rgba(255,255,255,0.15);" />
+                 <h3 id="alert-title" style="margin:0; font-size: 1.15rem; color: var(--secondary-color); font-weight:800; line-height:1.2;">Notice</h3>
+            </div>
+
+            <p id="alert-message" class="confirm-message"
+                style="margin-bottom: 24px; font-size: 0.95rem; line-height: 1.5; color: #fcfcfc;"></p>
+            <div id="alert-actions" class="confirm-actions" style="justify-content: flex-end; margin-top: 0; gap: 12px;">
+                <button id="alert-edit-btn" class="btn hidden" 
+                    style="flex:1; background: var(--secondary-color); color:#1e1e2f; font-weight:800;">Modify details</button>
+                <button id="alert-no-btn" class="btn confirm-no-btn hidden" style="flex:1; font-weight:700;">No</button>
+                <button id="alert-ok-btn" class="btn confirm-yes-btn" style="flex:1; font-weight:700;">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Event form modal -->
+    <div id="event-modal-overlay" class="confirm-overlay hidden">
+        <div class="confirm-box" style="text-align:left; max-width:400px; width:92%;">
+            <h3 id="event-modal-title" style="margin-bottom:20px; color:var(--secondary-color);">Add event</h3>
+
+            <label style="display:block; font-size:0.85rem; color:#a4b0be; margin-bottom:6px;">Event Name</label>
+            <input type="text" id="event-input-name" placeholder="E.g. Sunday Gift Exchange"
+                style="width:100%; padding:12px; margin-bottom:18px; border-radius:8px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.07); color:#fff; outline:none;" />
+
+            <div style="display:flex; gap:12px; margin-bottom:18px;">
+                <div style="flex:1;">
+                    <label style="display:block; font-size:0.85rem; color:#a4b0be; margin-bottom:6px;">Start
+                        Date</label>
+                    <input type="date" id="event-input-start"
+                        style="width:100%; padding:12px; border-radius:8px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.07); color:#fff; color-scheme:dark; outline:none;" />
+                </div>
+                <div style="flex:1;">
+                    <label style="display:block; font-size:0.85rem; color:#a4b0be; margin-bottom:6px;">End Date</label>
+                    <input type="date" id="event-input-end"
+                        style="width:100%; padding:12px; border-radius:8px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.07); color:#fff; color-scheme:dark; outline:none;" />
+                </div>
+            </div>
+
+            <div
+                style="display:flex; align-items:center; justify-content: space-between; margin-bottom:25px; background:rgba(255,255,255,0.03); padding:12px; border-radius:8px;">
+                <span style="font-size:0.95rem; color:#fff; font-weight:600;">Make this the active event</span>
+                <label class="switch">
+                    <input type="checkbox" id="event-input-active" checked>
+                    <span class="slider round"></span>
+                </label>
+            </div>
+
+            <div class="confirm-actions">
+                <button id="event-modal-save" class="btn confirm-yes-btn">Save event</button>
+                <button id="event-modal-cancel" class="btn confirm-no-btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add user modal overlay -->
+    <div id="user-modal-overlay" class="confirm-overlay hidden">
+        <div class="confirm-box" style="text-align:left; max-width:400px; width:92%; margin-top: -50px;">
+            <div id="user-modal-title" style="margin-bottom:20px; color:var(--secondary-color);">Add User</div>
+
+            <div style="margin-bottom:15px;">
+                <label style="display:block; font-size:0.85rem; color:#a4b0be; margin-bottom:6px;">First Name</label>
+                <input type="text" id="user-input-fname" placeholder="John"
+                    style="width:100%; padding:12px; border-radius:8px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.07); color:#fff; outline:none; box-sizing:border-box;" />
+            </div>
+
+            <div style="margin-bottom:15px;">
+                <label style="display:block; font-size:0.85rem; color:#a4b0be; margin-bottom:6px;">Last Name</label>
+                <input type="text" id="user-input-lname" placeholder="Doe"
+                    style="width:100%; padding:12px; border-radius:8px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.07); color:#fff; outline:none; box-sizing:border-box;" />
+            </div>
+
+            <div style="margin-bottom:15px;">
+                <label style="display:block; font-size:0.85rem; color:#a4b0be; margin-bottom:6px;">Other Names (Optional)</label>
+                <input type="text" id="user-input-oname" placeholder="Optional"
+                    style="width:100%; padding:12px; border-radius:8px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.07); color:#fff; outline:none; box-sizing:border-box;" />
+            </div>
+
+            <div style="margin-bottom:15px;">
+                <label style="display:block; font-size:0.85rem; color:#a4b0be; margin-bottom:6px;">Phone Number</label>
+                <input type="tel" id="user-input-phone" placeholder="054XXXXXXX"
+                    style="width:100%; padding:12px; border-radius:8px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.07); color:#fff; outline:none; box-sizing:border-box;" />
+            </div>
+
+            <div style="margin-bottom:15px;">
+                <label style="display:block; font-size:0.85rem; color:#a4b0be; margin-bottom:6px;">Email (Optional)</label>
+                <input type="email" id="user-input-email" placeholder="john@example.com"
+                    style="width:100%; padding:12px; border-radius:8px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.07); color:#fff; outline:none; box-sizing:border-box;" />
+            </div>
+
+            <div style="margin-bottom:25px;">
+                <label style="display:block; font-size:0.85rem; color:#a4b0be; margin-bottom:6px;">Date of Birth (Optional)</label>
+                <input type="date" id="user-input-dob"
+                    style="width:100%; padding:12px; border-radius:8px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.07); color:#fff; color-scheme:dark; outline:none; box-sizing:border-box;" />
+            </div>
+
+            <div class="confirm-actions">
+                <button id="user-modal-save" class="btn confirm-yes-btn">Add User</button>
+                <button id="user-modal-cancel" class="btn confirm-no-btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Preview Modal -->
+    <div id="image-preview-overlay" class="modal-overlay hidden" style="z-index: 10002; display: flex; align-items: center; justify-content: center; padding: 20px; position: fixed; inset: 0; background: rgba(0,0,0,0.85);">
+        <div class="modal-content" style="max-width: 500px; width: 100%; border: 2px solid var(--secondary-color); background: #1e1e2f; padding: 20px; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.6);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h3 style="margin:0; color:var(--secondary-color); font-size:1.1rem; font-weight:800;">Preview Greeting</h3>
+                <button id="close-preview-btn" style="background:none; border:none; color:#a4b0be; cursor:pointer; font-size:2rem; line-height:1;">&times;</button>
+            </div>
+            
+            <div style="margin-bottom:20px; border-radius:12px; overflow:hidden; border:1px solid rgba(255,255,255,0.1); box-shadow: 0 5px 15px rgba(0,0,0,0.4);">
+                <img id="preview-capture-img" style="width:100%; display:block;" />
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:12px;">
+                <button id="share-action-btn" class="btn" style="background:var(--secondary-color); color:#000; font-weight:800; padding:14px; display:flex; align-items:center; justify-content:center; gap:10px; border:none; border-radius:12px; cursor:pointer; width:100%;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+                    Share Image)
+                </button>
+                <button id="download-preview-btn" class="btn" style="background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.2); color:#fff; font-weight:700; padding:14px; display:flex; align-items:center; justify-content:center; gap:10px; border-radius:12px; cursor:pointer; width:100%;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    Download to phone
+                </button>
+            </div>
+            
+            <p style="margin-top:15px; font-size:0.8rem; color:#a4b0be; text-align:center;">If sharing fails, use "Download" then share from your gallery.</p>
+        </div>
+    </div>
+
+    <!-- Need type="module" since we are importing ES6 modules -->
+    <script type="module" src="app/app.js?v=1.6"></script>
+    <!-- App Footer (fixed at bottom) -->
+    <footer style="position:fixed; bottom:0; left:0; right:0; text-align:center; padding:10px 20px; font-size:0.72rem; color:rgba(255,255,255,0.35); background:var(--bg-color); border-top:1px solid rgba(255,255,255,0.06); z-index:50; letter-spacing:0.3px;">
+       Created By: DivAmok Corp. &nbsp;|&nbsp;  &copy;  Akosua Betty Ministries. 2026
+    </footer>
+</body>
+
+</html>

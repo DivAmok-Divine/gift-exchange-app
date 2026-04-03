@@ -1,0 +1,23 @@
+.toast-notification {
+    position: fixed;
+    top: calc(30px + env(safe-area-inset-top));
+    left: 50%;
+    transform: translateX(-50%) translateY(0);
+    background: var(--secondary-color);
+    color: #1e1e2f;
+    padding: 15px 25px;
+    border-radius: 8px;
+    font-weight: 800;
+    font-size: 1rem;
+    z-index: 9999;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    text-align: center;
+    pointer-events: none;
+    width: 90%;
+    max-width: 400px;
+}
+
+.toast-hidden {
+    transform: translateX(-50%) translateY(-100px) !important;
+    opacity: 0 !important;
+}
