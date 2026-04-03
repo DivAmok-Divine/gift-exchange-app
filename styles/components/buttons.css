@@ -1,0 +1,80 @@
+.user-greeting-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 5px;
+}
+
+.user-greeting {
+    text-align: left;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--secondary-color);
+}
+
+.logout-btn {
+    background: transparent;
+    border: none;
+    color: #ff7675;
+    font-size: 0.95rem;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.logout-btn:hover {
+    color: var(--primary-color);
+}
+
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.btn {
+    padding: 16px;
+    border: none;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 1.05rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    letter-spacing: 0.5px;
+}
+
+.momo-btn {
+    background: var(--primary-color);
+    color: #1a1a1a;
+}
+
+.momo-btn:hover {
+    background: var(--secondary-color);
+    transform: translateY(-2px);
+}
+
+.gift-btn {
+    background: var(--secondary-color);
+    color: #1a1a1a;
+}
+
+.gift-btn:hover {
+    background: #C5A028;
+    transform: translateY(-2px);
+}
+
+.close-btn {
+    background: transparent;
+    color: #a4b0be;
+    margin-top: 20px;
+    padding: 10px;
+    font-size: 0.95rem;
+}
+
+.close-btn:hover {
+    color: #fff;
+}

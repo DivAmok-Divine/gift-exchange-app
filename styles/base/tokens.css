@@ -1,0 +1,8 @@
+:root {
+    --primary-color: #D4AF37; /* Gold Metallic */
+    --secondary-color: #F8E08E; /* Champagne Gold */
+    --bg-color: #050505; /* Deep Obsidian */
+    --text-color: #fcfcfc;
+    --card-bg: rgba(255, 255, 255, 0.05);
+    --card-border: rgba(212, 175, 55, 0.3); /* Gold tint border */
+}

@@ -1,0 +1,146 @@
+/* Admin toggle link */
+.admin-toggle {
+    margin-top: 15px;
+    font-size: 0.95rem;
+    color: var(--secondary-color);
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.admin-toggle:hover {
+    text-decoration: underline;
+}
+
+/* Filter tabs */
+.admin-filter-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.filter-tab {
+    flex: 1;
+    padding: 9px 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.05);
+    color: #a4b0be;
+    font-family: inherit;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.filter-tab.active {
+    background: var(--secondary-color);
+    color: #1e1e2f;
+    border-color: var(--secondary-color);
+}
+
+/* User list */
+.admin-list {
+    width: 100%;
+    max-height: 70vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    padding-bottom: 20px;
+}
+
+.admin-card {
+    background: rgba(0,0,0,0.2);
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #fff;
+    width: 100%;
+}
+
+.admin-card p {
+    margin-bottom: 5px;
+    font-size: 0.95rem;
+}
+
+/* Reset button */
+.reset-btn {
+    background: var(--primary-color);
+    color: #1e1e2f;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 15px;
+    font-weight: 800;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.2s;
+}
+
+.reset-btn:hover {
+    background: var(--secondary-color);
+    color: #1e1e2f;
+}
+
+/* Custom confirm / change-password dialog */
+.confirm-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+.confirm-box {
+    background: #2d2d44;
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 10px;
+    padding: 30px 25px;
+    width: 85%;
+    max-width: 340px;
+    text-align: center;
+}
+
+.confirm-message {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 25px;
+    line-height: 1.5;
+}
+
+.confirm-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.confirm-yes-btn {
+    flex: 1;
+    background: var(--primary-color);
+    color: #1e1e2f;
+    font-weight: 800;
+    padding: 10px 16px;
+    font-size: 0.85rem;
+}
+
+.confirm-yes-btn:hover {
+    background: var(--secondary-color);
+    color: #1e1e2f;
+}
+
+.confirm-no-btn {
+    flex: 1;
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    font-weight: 700;
+    padding: 10px 16px;
+    font-size: 0.85rem;
+}
+
+.confirm-no-btn:hover {
+    background: rgba(255,255,255,0.2);
+}
