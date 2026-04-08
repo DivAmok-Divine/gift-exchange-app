@@ -98,3 +98,17 @@
         opacity: 0;
     }
 }
+
+/* ── Light Mode Overrides ── */
+:root[data-theme="light"] .winner-details {
+    background: rgba(0,0,0,0.04);
+    border: 1px solid rgba(0,0,0,0.08);
+}
+
+:root[data-theme="light"] #winner-name {
+    color: #2d3436;
+}
+
+:root[data-theme="light"] .modal-content h3 {
+    color: #2d3436;
+}

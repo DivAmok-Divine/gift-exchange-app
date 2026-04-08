@@ -1,6 +1,6 @@
 import { state } from './state.js';
 import { drawWheel } from './draw.js';
-import { saveUserPairing } from '../../db/data.js';
+import { saveMemberPairing } from '../../db/data.js';
 
 // Callback registered by auth/login.js to show result after spin
 let _onWinner = null;
@@ -13,7 +13,7 @@ export function spin() {
     if (state.isSpinning) return;
 
     // Guard: already paired in production mode
-    const isAlreadyPaired = !!localStorage.getItem('pairedUser_' + state.currentUser?.phone) || !!state.currentUser?.pairedWith;
+    const isAlreadyPaired = !!state.currentMember?.pairedWith;
     if (isAlreadyPaired && !state.testMode) {
         return;
     }
@@ -49,19 +49,18 @@ function determineWinner() {
     if (relativeAngle < 0) relativeAngle += 2 * Math.PI;
 
     const winningIndex = Math.floor(relativeAngle / state.sliceAngle);
-    state.currentWinner = state.activeUsers[winningIndex];
+    state.currentWinner = state.activeMembers[winningIndex];
 
     // Prevent self-pairing
-    if (state.currentUser && state.currentWinner.phone === state.currentUser.phone) {
-        state.currentWinner = state.activeUsers[(winningIndex + 1) % state.activeUsers.length];
-        if (state.currentWinner.phone === state.currentUser.phone) {
-            state.currentWinner = state.activeUsers[(winningIndex + 2) % state.activeUsers.length];
+    if (state.currentMember && state.currentWinner.phone === state.currentMember.phone) {
+        state.currentWinner = state.activeMembers[(winningIndex + 1) % state.activeMembers.length];
+        if (state.currentWinner.phone === state.currentMember.phone) {
+            state.currentWinner = state.activeMembers[(winningIndex + 2) % state.activeMembers.length];
         }
     }
 
-    if (state.currentUser && !state.testMode) {
-        localStorage.setItem('pairedUser_' + state.currentUser.phone, JSON.stringify(state.currentWinner));
-        saveUserPairing(state.currentUser.phone, state.currentWinner.phone);
+    if (state.currentMember && !state.testMode) {
+        saveMemberPairing(state.currentMember.phone, state.currentWinner.phone);
     }
 
     if (_onWinner) _onWinner(state.currentWinner);

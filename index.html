@@ -59,7 +59,7 @@
         }
     </style>
     <div id="login-container" class="login-container">
-        <div class="login-box" id="user-login-box"></div>
+        <div class="login-box" id="member-login-box"></div>
         <div class="login-box hidden" id="admin-login-box"></div>
     </div>
     </div>
@@ -83,13 +83,13 @@
             </div>
         </nav>
 
-        <main id="admin-users-view"
+        <main id="admin-members-view"
             style="align-items: stretch; padding: 0 5px; flex-direction:column; margin-top:15px;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                <h2 style="margin:0; font-size:1.4rem; color:var(--secondary-color);">Users</h2>
+                <h2 style="margin:0; font-size:1.4rem; color:var(--secondary-color);">Members</h2>
                 <button class="btn" onclick="window.__openUserModal()"
                     style="padding:10px 18px; font-size:0.85rem; background:var(--primary-color); color:#000; font-weight:800; border-radius:8px;">Add
-                    User</button>
+                    Member</button>
             </div>
             <div style="position:relative; width:100%; margin-bottom:12px;">
                 <svg style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:#a4b0be;"
@@ -98,7 +98,7 @@
                     <circle cx="11" cy="11" r="8"></circle>
                     <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                 </svg>
-                <input type="text" id="admin-search" placeholder="Search by name or number..."
+                <input type="text" id="admin-search" placeholder="Search by name or number..." autocomplete="off"
                     style="width:100%; padding:12px 15px 12px 38px; border-radius:8px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.07); color:#fff; font-family:inherit; font-size:0.95rem; box-sizing:border-box; outline:none;" />
             </div>
             <div class="admin-filter-tabs" id="admin-filter-tabs">
@@ -106,7 +106,7 @@
                 <button class="filter-tab" data-filter="pending">Pending</button>
                 <button class="filter-tab" data-filter="paired">Paired</button>
             </div>
-            <div id="admin-user-list" class="admin-list"></div>
+            <div id="admin-members-list" class="admin-list"></div>
         </main>
 
         <main id="admin-events-view" class="hidden"
@@ -124,7 +124,7 @@
                     <circle cx="11" cy="11" r="8"></circle>
                     <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                 </svg>
-                <input type="text" id="admin-event-search" placeholder="Search events by name..."
+                <input type="text" id="admin-event-search" placeholder="Search events by name..." autocomplete="off"
                     style="width:100%; padding:12px 15px 12px 38px; border-radius:8px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.07); color:#fff; font-family:inherit; font-size:0.95rem; box-sizing:border-box; outline:none;" />
             </div>
             <div class="admin-filter-tabs" id="admin-event-filter-tabs">
@@ -153,57 +153,78 @@
                 </button>
             </div>
             <div class="sidebar-content">
-                <button id="admin-btn-users" class="sidebar-menu-item active">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="9" cy="7" r="4"></circle>
-                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                    </svg>
-                    <span>Manage Users</span>
-                </button>
-                <button id="admin-btn-events" class="sidebar-menu-item">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                        <line x1="16" y1="2" x2="16" y2="6"></line>
-                        <line x1="8" y1="2" x2="8" y2="6"></line>
-                        <line x1="3" y1="10" x2="21" y2="10"></line>
-                    </svg>
-                    <span>Events</span>
-                </button>
-                <button id="admin-dash-logout" class="sidebar-menu-item logout-variant" style="margin-top:20px;">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                        <polyline points="16 17 21 12 16 7"></polyline>
-                        <line x1="21" y1="12" x2="9" y2="12"></line>
-                    </svg>
-                    <span>Log Out</span>
-                </button>
-            </div>
+            <button id="admin-btn-members" class="sidebar-menu-item active">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+                <span>Manage Members</span>
+            </button>
+            <button id="admin-btn-events" class="sidebar-menu-item">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+                <span>Events</span>
+            </button>
+            <button class="sidebar-menu-item theme-toggle-btn">
+                <svg class="theme-icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+                    style="display:block;">
+                    <circle cx="12" cy="12" r="5"></circle>
+                    <line x1="12" y1="1" x2="12" y2="3"></line>
+                    <line x1="12" y1="21" x2="12" y2="23"></line>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                    <line x1="1" y1="12" x2="3" y2="12"></line>
+                    <line x1="21" y1="12" x2="23" y2="12"></line>
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                </svg>
+                <svg class="theme-icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+                    style="display:none;">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg>
+                <span class="theme-label">Switch to Light Mode</span>
+            </button>
+            <button id="admin-dash-logout" class="sidebar-menu-item logout-variant" style="margin-top:20px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                    <polyline points="16 17 21 12 16 7"></polyline>
+                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                </svg>
+                <span>Log Out</span>
+            </button>
         </div>
     </div>
+</div>
 
-    <div class="app-container hidden" id="app-container">
-        <nav class="top-nav">
-            <div class="nav-brand">
-                <img src="media/ABMinistry.jpeg" alt="Logo">
-            </div>
-            <div class="nav-actions">
-                <span id="user-greeting" class="user-greeting"></span>
-                <button class="hamburger-btn"
-                    onclick="document.getElementById('user-sidebar-overlay').classList.add('active'); document.getElementById('user-sidebar').classList.add('active');">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="3" y1="12" x2="21" y2="12"></line>
-                        <line x1="3" y1="6" x2="21" y2="6"></line>
-                        <line x1="3" y1="18" x2="21" y2="18"></line>
-                    </svg>
-                </button>
-            </div>
-        </nav>
+<div class="app-container hidden" id="app-container">
+    <nav class="top-nav">
+        <div class="nav-brand">
+            <img src="media/ABMinistry.jpeg" alt="Logo">
+        </div>
+        <div class="nav-actions">
+            <span id="member-greeting" class="member-greeting"></span>
+            <button class="hamburger-btn"
+                onclick="document.getElementById('member-sidebar-overlay').classList.add('active'); document.getElementById('member-sidebar').classList.add('active');">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+    </nav>
 
         <header>
             <h1 style="font-size: 1.8rem;">Gift exchange</h1>
@@ -258,15 +279,15 @@
     </div>
     </main>
 
-    <!-- User Sidebar -->
-    <div id="user-sidebar-overlay" class="sidebar-overlay"
-        onclick="this.classList.remove('active'); document.getElementById('user-sidebar').classList.remove('active');">
+    <!-- Member Sidebar -->
+    <div id="member-sidebar-overlay" class="sidebar-overlay"
+        onclick="this.classList.remove('active'); document.getElementById('member-sidebar').classList.remove('active');">
     </div>
-    <div id="user-sidebar" class="app-sidebar">
+    <div id="member-sidebar" class="app-sidebar">
         <div class="sidebar-header">
             <h3>Menu</h3>
             <button class="close-sidebar-btn"
-                onclick="document.getElementById('user-sidebar-overlay').classList.remove('active'); document.getElementById('user-sidebar').classList.remove('active');">
+                onclick="document.getElementById('member-sidebar-overlay').classList.remove('active'); document.getElementById('member-sidebar').classList.remove('active');">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                     stroke-linecap="round" stroke-linejoin="round">
                     <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -276,7 +297,7 @@
         </div>
         <div class="sidebar-content">
             <button id="change-password-btn" class="sidebar-menu-item"
-                onclick="document.getElementById('user-sidebar-overlay').click()">
+                onclick="document.getElementById('member-sidebar-overlay').click()">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                     stroke-linecap="round" stroke-linejoin="round">
                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
@@ -299,8 +320,31 @@
                     <span class="slider round"></span>
                 </label>
             </div>
+            <button class="sidebar-menu-item theme-toggle-btn">
+                <div style="display:flex; align-items:center; gap:15px;">
+                    <svg class="theme-icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+                        style="display:block;">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                    <svg class="theme-icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+                        style="display:none;">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <span class="theme-label">Switch to Light Mode</span>
+                </div>
+            </button>
             <button id="logout-btn" class="sidebar-menu-item logout-variant"
-                onclick="document.getElementById('user-sidebar-overlay').click()">
+                onclick="document.getElementById('member-sidebar-overlay').click()">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                     stroke-linecap="round" stroke-linejoin="round">
                     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
@@ -328,12 +372,12 @@
     <!-- Change phone modal -->
     <div id="change-phone-overlay" class="confirm-overlay hidden">
         <div class="confirm-box">
-            <p class="confirm-message" id="change-phone-title">Change password for user</p>
+            <p class="confirm-message" id="change-phone-title">Change password for member</p>
             <p id="change-phone-error" class="hidden error-text"
                 style="margin-bottom:24px; text-align:left; font-size:0.85rem; line-height:1.4;">Please
                 enter a valid password (min. 4 characters).</p>
             <div class="password-wrapper" style="margin-bottom:18px;">
-                <input type="password" id="new-phone-input" placeholder="New password"
+                <input type="password" id="new-phone-input" placeholder="New password" autocomplete="new-password"
                     style="width:100%; padding:12px 15px 12px 15px; padding-right:45px; border-radius:8px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.07); color:#fff; font-family:inherit; font-size:0.95rem; box-sizing:border-box; outline:none;" />
                 <div class="toggle-password" id="toggle-modal-pass" style="right:12px; margin-top:0;">
                     <svg class="eye-open" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor"
@@ -361,19 +405,28 @@
     <!-- Custom alert dialog -->
     <div id="alert-overlay" class="confirm-overlay hidden">
         <div class="confirm-box" style="text-align: left; position:relative; padding-top:20px;">
-            <button id="alert-close-btn" style="position:absolute; top:12px; right:15px; background:none; border:none; color:#a4b0be; cursor:pointer; font-size:1.8rem; line-height:1;">&times;</button>
-            <div id="alert-header-box" style="display:flex; align-items:center; gap:12px; margin-bottom:20px; padding-right:30px;">
-                 <img src="media/ABMinistry.jpeg" style="width:30px; height:30px; border-radius:50%; border:1px solid rgba(255,255,255,0.15);" />
-                 <h3 id="alert-title" style="margin:0; font-size: 1.15rem; color: var(--secondary-color); font-weight:800; line-height:1.2;">Notice</h3>
+            <button id="alert-close-btn"
+                style="position:absolute; top:12px; right:15px; background:none; border:none; color:#a4b0be; cursor:pointer; font-size:1.8rem; line-height:1;">&times;</button>
+            <div id="alert-header-box"
+                style="display:flex; align-items:center; gap:12px; margin-bottom:20px; padding-right:30px;">
+                <img src="media/ABMinistry.jpeg"
+                    style="width:30px; height:30px; border-radius:50%; border:1px solid rgba(255,255,255,0.15);" />
+                <h3 id="alert-title"
+                    style="margin:0; font-size: 1.15rem; color: var(--secondary-color); font-weight:800; line-height:1.2;">
+                    Notice</h3>
             </div>
 
             <p id="alert-message" class="confirm-message"
                 style="margin-bottom: 24px; font-size: 0.95rem; line-height: 1.5; color: #fcfcfc;"></p>
-            <div id="alert-actions" class="confirm-actions" style="justify-content: flex-end; margin-top: 0; gap: 12px;">
-                <button id="alert-edit-btn" class="btn hidden" 
-                    style="flex:1; background: var(--secondary-color); color:#1e1e2f; font-weight:800;">Modify details</button>
-                <button id="alert-no-btn" class="btn confirm-no-btn hidden" style="flex:1; font-weight:700;">No</button>
-                <button id="alert-ok-btn" class="btn confirm-yes-btn" style="flex:1; font-weight:700;">Close</button>
+            <div id="alert-actions" class="confirm-actions"
+                style="justify-content: flex-end; margin-top: 0; gap: 12px;">
+                <button id="alert-edit-btn" class="btn hidden"
+                    style="padding:10px 14px; font-size:0.85rem; flex:1; background: var(--secondary-color); color:#1e1e2f; font-weight:800; border-radius:8px;">Modify
+                    details</button>
+                <button id="alert-no-btn" class="btn confirm-no-btn hidden"
+                    style="padding:10px 14px; font-size:0.85rem; flex:1; font-weight:700; border-radius:8px;">No</button>
+                <button id="alert-ok-btn" class="btn confirm-yes-btn"
+                    style="padding:10px 14px; font-size:0.85rem; flex:1; font-weight:700; border-radius:8px;">Close</button>
             </div>
         </div>
     </div>
@@ -384,7 +437,7 @@
             <h3 id="event-modal-title" style="margin-bottom:20px; color:var(--secondary-color);">Add event</h3>
 
             <label style="display:block; font-size:0.85rem; color:#a4b0be; margin-bottom:6px;">Event Name</label>
-            <input type="text" id="event-input-name" placeholder="E.g. Sunday Gift Exchange"
+            <input type="text" id="event-input-name" placeholder="E.g. Sunday Gift Exchange" autocomplete="off"
                 style="width:100%; padding:12px; margin-bottom:18px; border-radius:8px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.07); color:#fff; outline:none;" />
 
             <div style="display:flex; gap:12px; margin-bottom:18px;">
@@ -417,87 +470,110 @@
         </div>
     </div>
 
-    <!-- Add user modal overlay -->
-    <div id="user-modal-overlay" class="confirm-overlay hidden">
+    <!-- Member Member modal overlay -->
+    <div id="member-modal-overlay" class="confirm-overlay hidden">
         <div class="confirm-box" style="text-align:left; max-width:400px; width:92%; margin-top: -50px;">
-            <div id="user-modal-title" style="margin-bottom:20px; color:var(--secondary-color);">Add User</div>
+            <div id="member-modal-title" style="margin-bottom:20px; color:var(--secondary-color);">Add Member</div>
 
             <div style="margin-bottom:15px;">
                 <label style="display:block; font-size:0.85rem; color:#a4b0be; margin-bottom:6px;">First Name</label>
-                <input type="text" id="user-input-fname" placeholder="John"
+                <input type="text" id="member-input-fname" placeholder="John" autocomplete="off"
                     style="width:100%; padding:12px; border-radius:8px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.07); color:#fff; outline:none; box-sizing:border-box;" />
             </div>
 
             <div style="margin-bottom:15px;">
                 <label style="display:block; font-size:0.85rem; color:#a4b0be; margin-bottom:6px;">Last Name</label>
-                <input type="text" id="user-input-lname" placeholder="Doe"
+                <input type="text" id="member-input-lname" placeholder="Doe" autocomplete="off"
                     style="width:100%; padding:12px; border-radius:8px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.07); color:#fff; outline:none; box-sizing:border-box;" />
             </div>
 
             <div style="margin-bottom:15px;">
-                <label style="display:block; font-size:0.85rem; color:#a4b0be; margin-bottom:6px;">Other Names (Optional)</label>
-                <input type="text" id="user-input-oname" placeholder="Optional"
+                <label style="display:block; font-size:0.85rem; color:#a4b0be; margin-bottom:6px;">Other Names
+                    (Optional)</label>
+                <input type="text" id="member-input-oname" placeholder="Optional" autocomplete="off"
                     style="width:100%; padding:12px; border-radius:8px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.07); color:#fff; outline:none; box-sizing:border-box;" />
             </div>
 
             <div style="margin-bottom:15px;">
                 <label style="display:block; font-size:0.85rem; color:#a4b0be; margin-bottom:6px;">Phone Number</label>
-                <input type="tel" id="user-input-phone" placeholder="054XXXXXXX"
+                <input type="tel" id="member-input-phone" placeholder="054XXXXXXX" autocomplete="off"
                     style="width:100%; padding:12px; border-radius:8px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.07); color:#fff; outline:none; box-sizing:border-box;" />
             </div>
 
             <div style="margin-bottom:15px;">
-                <label style="display:block; font-size:0.85rem; color:#a4b0be; margin-bottom:6px;">Email (Optional)</label>
-                <input type="email" id="user-input-email" placeholder="john@example.com"
+                <label style="display:block; font-size:0.85rem; color:#a4b0be; margin-bottom:6px;">Email
+                    (Optional)</label>
+                <input type="email" id="member-input-email" placeholder="john@example.com" autocomplete="off"
                     style="width:100%; padding:12px; border-radius:8px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.07); color:#fff; outline:none; box-sizing:border-box;" />
             </div>
 
             <div style="margin-bottom:25px;">
-                <label style="display:block; font-size:0.85rem; color:#a4b0be; margin-bottom:6px;">Date of Birth (Optional)</label>
-                <input type="date" id="user-input-dob"
+                <label style="display:block; font-size:0.85rem; color:#a4b0be; margin-bottom:6px;">Date of Birth
+                    (Optional)</label>
+                <input type="date" id="member-input-dob"
                     style="width:100%; padding:12px; border-radius:8px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.07); color:#fff; color-scheme:dark; outline:none; box-sizing:border-box;" />
             </div>
 
             <div class="confirm-actions">
-                <button id="user-modal-save" class="btn confirm-yes-btn">Add User</button>
-                <button id="user-modal-cancel" class="btn confirm-no-btn">Cancel</button>
+                <button id="member-modal-save" class="btn confirm-yes-btn">Add Member</button>
+                <button id="member-modal-cancel" class="btn confirm-no-btn">Cancel</button>
             </div>
         </div>
     </div>
 
     <!-- Image Preview Modal -->
-    <div id="image-preview-overlay" class="modal-overlay hidden" style="z-index: 10002; display: flex; align-items: center; justify-content: center; padding: 20px; position: fixed; inset: 0; background: rgba(0,0,0,0.85);">
-        <div class="modal-content" style="max-width: 500px; width: 100%; border: 2px solid var(--secondary-color); background: #1e1e2f; padding: 20px; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.6);">
+    <div id="image-preview-overlay" class="modal-overlay hidden"
+        style="z-index: 10002; display: flex; align-items: center; justify-content: center; padding: 20px; position: fixed; inset: 0; background: rgba(0,0,0,0.85);">
+        <div class="modal-content"
+            style="max-width: 500px; width: 100%; border: 2px solid var(--secondary-color); background: #1e1e2f; padding: 20px; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.6);">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                <h3 style="margin:0; color:var(--secondary-color); font-size:1.1rem; font-weight:800;">Preview Greeting</h3>
-                <button id="close-preview-btn" style="background:none; border:none; color:#a4b0be; cursor:pointer; font-size:2rem; line-height:1;">&times;</button>
+                <h3 style="margin:0; color:var(--secondary-color); font-size:1.1rem; font-weight:800;">Preview Greeting
+                </h3>
+                <button id="close-preview-btn"
+                    style="background:none; border:none; color:#a4b0be; cursor:pointer; font-size:2rem; line-height:1;">&times;</button>
             </div>
-            
-            <div style="margin-bottom:20px; border-radius:12px; overflow:hidden; border:1px solid rgba(255,255,255,0.1); box-shadow: 0 5px 15px rgba(0,0,0,0.4);">
+
+            <div
+                style="margin-bottom:20px; border-radius:12px; overflow:hidden; border:1px solid rgba(255,255,255,0.1); box-shadow: 0 5px 15px rgba(0,0,0,0.4);">
                 <img id="preview-capture-img" style="width:100%; display:block;" />
             </div>
 
             <div style="display:flex; flex-direction:column; gap:12px;">
-                <button id="share-action-btn" class="btn" style="background:var(--secondary-color); color:#000; font-weight:800; padding:14px; display:flex; align-items:center; justify-content:center; gap:10px; border:none; border-radius:12px; cursor:pointer; width:100%;">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+                <button id="share-action-btn" class="btn"
+                    style="background:var(--secondary-color); color:#000; font-weight:800; padding:14px; display:flex; align-items:center; justify-content:center; gap:10px; border:none; border-radius:12px; cursor:pointer; width:100%;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+                        <polyline points="16 6 12 2 8 6"></polyline>
+                        <line x1="12" y1="2" x2="12" y2="15"></line>
+                    </svg>
                     Share Image)
                 </button>
-                <button id="download-preview-btn" class="btn" style="background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.2); color:#fff; font-weight:700; padding:14px; display:flex; align-items:center; justify-content:center; gap:10px; border-radius:12px; cursor:pointer; width:100%;">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                <button id="download-preview-btn" class="btn"
+                    style="background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.2); color:#fff; font-weight:700; padding:14px; display:flex; align-items:center; justify-content:center; gap:10px; border-radius:12px; cursor:pointer; width:100%;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
                     Download to phone
                 </button>
             </div>
-            
-            <p style="margin-top:15px; font-size:0.8rem; color:#a4b0be; text-align:center;">If sharing fails, use "Download" then share from your gallery.</p>
+
+            <p style="margin-top:15px; font-size:0.8rem; color:#a4b0be; text-align:center;">If sharing fails, use
+                "Download" then share from your gallery.</p>
         </div>
     </div>
 
     <!-- Need type="module" since we are importing ES6 modules -->
     <script type="module" src="app/app.js?v=1.6"></script>
     <!-- App Footer (fixed at bottom) -->
-    <footer style="position:fixed; bottom:0; left:0; right:0; text-align:center; padding:10px 20px; font-size:0.72rem; color:rgba(255,255,255,0.35); background:var(--bg-color); border-top:1px solid rgba(255,255,255,0.06); z-index:50; letter-spacing:0.3px;">
-       Created By: DivAmok Corp. &nbsp;|&nbsp;  &copy;  Akosua Betty Ministries. 2026
+    <footer
+        style="position:fixed; bottom:0; left:0; right:0; text-align:center; padding:10px 20px; font-size:0.72rem; color:rgba(255,255,255,0.35); background:var(--bg-color); border-top:1px solid rgba(255,255,255,0.06); z-index:50; letter-spacing:0.3px;">
+        Designed By: DivAmok Corp. &nbsp;|&nbsp; &copy; Akosua Betty Ministries. 2026
     </footer>
+
 </body>
 
 </html>

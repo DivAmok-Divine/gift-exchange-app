@@ -15,13 +15,14 @@ body {
     min-height: 100vh;
     display: flex;
     justify-content: center;
-    align-items: flex-start; /* Start from top so header is visible */
+    align-items: flex-start;
+    /* Start from top so header is visible */
 }
 
 header {
     text-align: center;
-    margin-top: 10px;
-    margin-bottom: 20px;
+    margin-top: 0 !important;
+    margin-bottom: 5px !important; /* BALANCED GAP */
 }
 
 .top-nav {
@@ -31,8 +32,9 @@ header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 15px 0;
-    padding-top: max(15px, env(safe-area-inset-top));
+    padding: 0 !important;
+    padding-top: 10px !important; /* THE SWEET SPOT */
+    padding-bottom: 5px !important;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     background-color: var(--bg-color);
     z-index: 1000;
@@ -65,7 +67,7 @@ header {
     gap: 12px;
 }
 
-.user-greeting {
+.member-greeting {
     font-size: 0.85rem;
     color: #a4b0be;
     font-weight: 600;
@@ -112,7 +114,8 @@ main {
     align-items: center;
     gap: 15px;
     padding-top: 20px;
-    padding-bottom: 60px; /* More room at the bottom */
+    padding-bottom: 60px;
+    /* More room at the bottom */
     width: 100%;
 }
 

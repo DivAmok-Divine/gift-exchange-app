@@ -1,12 +1,13 @@
 import { showToast } from '../ui/toast.js';
 import { openChangePasswordModal, getEffectivePassword } from './login.js';
 import {
-    saveUserPassword,
-    saveUserPairing,
+    saveMemberPassword,
+    saveMemberPairing,
     saveEventToSheet,
     deleteEventFromSheet,
-    saveNewUser,
-    updateUserOnSheet
+    saveNewMember,
+    updateMemberOnSheet,
+    deleteMemberOnSheet
 } from '../../db/data.js';
 import { state } from '../wheel/state.js';
 
@@ -17,12 +18,7 @@ export function initAdmin(users, admins) {
     const loginContainer = document.getElementById('login-container');
     const appContainer = document.getElementById('app-container');
 
-    // --- Restore admin session on page load ---
-    if (localStorage.getItem('adminSession')) {
-        const savedUsername = localStorage.getItem('adminUsername') || 'Admin';
-        setAdminGreeting(savedUsername);
-        loadAdminDashboard();
-    }
+
 
     function setAdminGreeting(username) {
         document.getElementById('admin-greeting').innerHTML = `<svg class="icon-inline" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> ${username}`;
@@ -43,7 +39,7 @@ export function initAdmin(users, admins) {
                 welcomeTaps++;
                 clearTimeout(tapTimeout);
                 if (welcomeTaps >= 4) {
-                    document.getElementById('user-login-box').classList.add('hidden');
+                    document.getElementById('member-login-box').classList.add('hidden');
                     document.getElementById('admin-login-box').classList.remove('hidden');
                     welcomeTaps = 0;
                     showToast('Admin mode unlocked');
@@ -56,29 +52,39 @@ export function initAdmin(users, admins) {
     setTimeout(attachAdminTrigger, 500);
 
     // Back to user login
-    function attachUserToggle() {
-        const toggle = document.getElementById('user-toggle');
+    function attachMemberToggle() {
+        const toggle = document.getElementById('member-toggle');
         if (toggle) {
             toggle.onclick = () => {
                 document.getElementById('admin-login-box').classList.add('hidden');
-                document.getElementById('user-login-box').classList.remove('hidden');
+                document.getElementById('member-login-box').classList.remove('hidden');
             };
         }
     }
-    attachUserToggle();
+    attachMemberToggle();
+
+    // --- Force-clear any legacy storage (strict statelessness) ---
+    const sessionKeys = ['logged_member_phone', 'logged_admin_user'];
+    const savedAdmin = sessionStorage.getItem('logged_admin_user');
+    if (savedAdmin) {
+        const preMatched = admins.find(a => a.username === savedAdmin);
+        if (preMatched) {
+            setAdminGreeting(preMatched.username);
+            loadAdminDashboard();
+        }
+    }
 
     // --- Admin login ---
     const adminUserBox = document.getElementById('admin-username');
     const adminPassBox = document.getElementById('admin-password');
 
     const adminLoginAction = () => {
-        const user = adminUserBox.value.trim();
+        const user = adminUserBox.value.trim().toLowerCase();
         const pass = adminPassBox.value.trim();
-        const matchedAdmin = admins.find(a => a.username === user && a.password === pass);
+        const matchedAdmin = admins.find(a => (a.username || '').toLowerCase() === user && String(a.password) === String(pass));
 
         if (matchedAdmin) {
-            localStorage.setItem('adminSession', 'true');
-            localStorage.setItem('adminUsername', matchedAdmin.username);
+            sessionStorage.setItem('logged_admin_user', matchedAdmin.username);
             setAdminGreeting(matchedAdmin.username);
             loadAdminDashboard();
         } else {
@@ -107,12 +113,15 @@ export function initAdmin(users, admins) {
 
     // --- Admin logout ---
     document.getElementById('admin-dash-logout').addEventListener('click', () => {
-        localStorage.removeItem('adminSession');
-        localStorage.removeItem('adminUsername');
+        // Close sidebar first
+        const overlay = document.getElementById('admin-sidebar-overlay');
+        if (overlay) overlay.click();
+        
+        sessionStorage.removeItem('logged_admin_user');
         document.getElementById('admin-greeting').innerText = '';
         document.getElementById('admin-dashboard').classList.add('hidden');
         loginContainer.classList.remove('hidden');
-        document.getElementById('user-login-box').classList.remove('hidden');
+        document.getElementById('member-login-box').classList.remove('hidden');
         document.getElementById('admin-login-box').classList.add('hidden');
         document.getElementById('admin-username').value = '';
         document.getElementById('admin-password').value = '';
@@ -135,25 +144,32 @@ export function initAdmin(users, admins) {
     };
 
     // --- Sidebar switching logic ---
-    const btnUsers = document.getElementById('admin-btn-users');
+    const btnMembers = document.getElementById('admin-btn-members');
     const btnEvents = document.getElementById('admin-btn-events');
-    const viewUsers = document.getElementById('admin-users-view');
+    const viewMembers = document.getElementById('admin-members-view');
     const viewEvents = document.getElementById('admin-events-view');
 
-    if (btnUsers && btnEvents) {
-        btnUsers.onclick = () => {
-            btnUsers.classList.add('active');
+    if (btnMembers && btnEvents) {
+        const closeSidebar = () => {
+            const overlay = document.getElementById('admin-sidebar-overlay');
+            if (overlay) overlay.click();
+        };
+
+        btnMembers.onclick = () => {
+            btnMembers.classList.add('active');
             btnEvents.classList.remove('active');
-            viewUsers.classList.remove('hidden');
+            viewMembers.classList.remove('hidden');
             viewEvents.classList.add('hidden');
             renderAdminList();
+            closeSidebar();
         };
         btnEvents.onclick = () => {
             btnEvents.classList.add('active');
-            btnUsers.classList.remove('active');
+            btnMembers.classList.remove('active');
             viewEvents.classList.remove('hidden');
-            viewUsers.classList.add('hidden');
+            viewMembers.classList.add('hidden');
             renderEvents();
+            closeSidebar();
         };
     }
 
@@ -316,25 +332,25 @@ export function initAdmin(users, admins) {
         };
     };
 
-    // --- User CRUD Actions ---
-    window.__openUserModal = function (editIdx = null) {
-        const overlay = document.getElementById('user-modal-overlay');
-        const inputPhone = document.getElementById('user-input-phone');
-        const inputEmail = document.getElementById('user-input-email');
-        const inputDob = document.getElementById('user-input-dob');
-        const inputFname = document.getElementById('user-input-fname');
-        const inputLname = document.getElementById('user-input-lname');
-        const inputOname = document.getElementById('user-input-oname');
+    // --- Member CRUD Actions ---
+    window.__openMemberModal = function (editIdx = null) {
+        const overlay = document.getElementById('member-modal-overlay');
+        const inputPhone = document.getElementById('member-input-phone');
+        const inputEmail = document.getElementById('member-input-email');
+        const inputDob = document.getElementById('member-input-dob');
+        const inputFname = document.getElementById('member-input-fname');
+        const inputLname = document.getElementById('member-input-lname');
+        const inputOname = document.getElementById('member-input-oname');
 
         const isEdit = editIdx !== null;
         let oldPhoneForUniqueId = null;
 
         if (isEdit) {
-            const u = Array.isArray(editIdx) ? editIdx[0] : users[editIdx]; // Handle filtered list vs main list
-            document.getElementById('user-modal-title').innerText = 'Edit User';
+            const u = Array.isArray(editIdx) ? editIdx[0] : users[editIdx]; 
+            document.getElementById('member-modal-title').innerText = 'Edit Member';
 
             // This is complex because we need to parse the full name back to parts
-            // But since our user objects have the components when created locally,
+            // But since our member objects have the components when Designed locally,
             // we will try to use them. If they came from sheet, they just have fullName.
             const nameParts = u.fullName.split(' ');
             inputFname.value = nameParts[0] || '';
@@ -343,7 +359,7 @@ export function initAdmin(users, admins) {
 
             inputPhone.value = u.phone;
             inputEmail.value = u.email || '';
-            
+
             // --- Robust Date Parsing (DD/MM/YYYY to YYYY-MM-DD) ---
             if (u.dob && u.dob.trim() !== '') {
                 const parts = u.dob.split(/[/-]/);
@@ -366,7 +382,7 @@ export function initAdmin(users, admins) {
             }
             oldPhoneForUniqueId = u.phone;
         } else {
-            document.getElementById('user-modal-title').innerText = 'Add User';
+            document.getElementById('member-modal-title').innerText = 'Add Member';
             inputFname.value = '';
             inputLname.value = '';
             inputOname.value = '';
@@ -377,9 +393,9 @@ export function initAdmin(users, admins) {
 
         overlay.classList.remove('hidden');
 
-        document.getElementById('user-modal-cancel').onclick = () => overlay.classList.add('hidden');
+        document.getElementById('member-modal-cancel').onclick = () => overlay.classList.add('hidden');
 
-        document.getElementById('user-modal-save').onclick = async () => {
+        document.getElementById('member-modal-save').onclick = async () => {
             const firstName = inputFname.value.trim();
             const lastName = inputLname.value.trim();
             const otherNames = inputOname.value.trim();
@@ -402,9 +418,9 @@ export function initAdmin(users, admins) {
             const cleanPhone = phone.replace(/^0+/, '').replace(/\s+/g, '');
 
             if (isEdit) {
-                const userIdx = users.findIndex(ux => ux.phone === oldPhoneForUniqueId);
-                if (userIdx !== -1) {
-                    const u = users[userIdx];
+                const memberIdx = users.findIndex(ux => ux.phone === oldPhoneForUniqueId);
+                if (memberIdx !== -1) {
+                    const u = users[memberIdx];
                     u.fullName = fullName;
                     u.phone = phone;
                     u.cleanPhone = cleanPhone;
@@ -412,10 +428,10 @@ export function initAdmin(users, admins) {
                     u.dob = dob;
                 }
                 overlay.classList.add('hidden');
-                showToast('Updating user details...');
+                showToast('Updating member details...');
                 renderAdminList();
 
-                const success = await updateUserOnSheet({
+                const success = await updateMemberOnSheet({
                     oldPhone: oldPhoneForUniqueId,
                     firstName,
                     lastName,
@@ -431,10 +447,10 @@ export function initAdmin(users, admins) {
             } else {
                 // Avoid duplicates
                 if (users.find(u => u.cleanPhone === cleanPhone)) {
-                    return showToast('A user with this phone already exists');
+                    return showToast('A member with this phone already exists');
                 }
 
-                const newUser = {
+                const newMember = {
                     fullName,
                     phone,
                     cleanPhone,
@@ -444,12 +460,12 @@ export function initAdmin(users, admins) {
                     pairedWith: ''
                 };
 
-                users.push(newUser);
+                users.push(newMember);
                 overlay.classList.add('hidden');
-                showToast('Adding user to sheet...');
+                showToast('Adding member to sheet...');
                 renderAdminList();
 
-                const success = await saveNewUser({
+                const success = await saveNewMember({
                     firstName,
                     lastName,
                     otherNames,
@@ -464,33 +480,78 @@ export function initAdmin(users, admins) {
         };
     };
 
-    window.__editUser = (phone) => {
+    window.__editMember = (phone) => {
         const u = users.find(x => x.phone === phone);
         if (u) {
-            // Find its actual index in the users array
             const idx = users.indexOf(u);
-            window.__openUserModal(idx);
+            window.__openMemberModal(idx);
         }
     };
 
     window.__editEvent = (idx) => window.__openEventModal(idx);
 
-    window.__deleteEvent = async (idx) => {
+    window.__deleteEvent = (idx) => {
         const ev = state.allEvents[idx];
-        if (!confirm(`Are you sure you want to delete "${ev.name}"?`)) return;
+        const overlay = document.getElementById('confirm-overlay');
+        const confirmYes = document.getElementById('confirm-yes');
+        const confirmNo = document.getElementById('confirm-no');
+        const confirmMsg = document.getElementById('confirm-message');
 
-        const nameToDelete = ev.name;
-        state.allEvents.splice(idx, 1);
+        confirmMsg.innerText = `Are you sure you want to delete "${ev.name}"?`;
+        confirmYes.innerText = 'Yes, delete';
+        overlay.classList.remove('hidden');
 
-        showToast('Deleting from cloud...');
-        renderEvents();
+        confirmNo.onclick = () => overlay.classList.add('hidden');
 
-        const success = await deleteEventFromSheet(nameToDelete);
-        if (success) {
-            showToast('Success! Event removed.');
-        } else {
-            showToast('Warning: Could not delete from cloud.');
-        }
+        confirmYes.onclick = async () => {
+            const nameToDelete = ev.name;
+            state.allEvents.splice(idx, 1);
+
+            overlay.classList.add('hidden');
+            showToast('Deleting from cloud...');
+            renderEvents();
+
+            const success = await deleteEventFromSheet(nameToDelete);
+            if (success) {
+                showToast('Success! Event removed.');
+            } else {
+                showToast('Warning: Could not delete from cloud.');
+            }
+        };
+    };
+
+    window.__deleteMember = (phone) => {
+        const u = users.find(x => x.phone === phone);
+        if (!u) return;
+
+        const overlay = document.getElementById('confirm-overlay');
+        const confirmYes = document.getElementById('confirm-yes');
+        const confirmNo = document.getElementById('confirm-no');
+        const confirmMsg = document.getElementById('confirm-message');
+
+        confirmMsg.innerText = `Are you sure you want to delete "${u.fullName}"? This will permanently remove their record.`;
+        confirmYes.innerText = 'Yes, delete member';
+        overlay.classList.remove('hidden');
+
+        confirmNo.onclick = () => overlay.classList.add('hidden');
+
+        confirmYes.onclick = async () => {
+            const userIdx = users.findIndex(ux => ux.phone === phone);
+            if (userIdx !== -1) {
+                users.splice(userIdx, 1);
+            }
+
+            overlay.classList.add('hidden');
+            showToast('Deleting member from sheet...');
+            renderAdminList();
+
+            const success = await deleteMemberOnSheet(phone);
+            if (success) {
+                showToast(`Success! ${u.fullName} removed.`);
+            } else {
+                showToast('Warning: Could not delete from cloud.');
+            }
+        };
     };
 
     document.getElementById('event-modal-cancel').onclick = () => {
@@ -501,6 +562,7 @@ export function initAdmin(users, admins) {
         loginContainer.classList.add('hidden');
         appContainer.classList.add('hidden');
         document.getElementById('admin-dashboard').classList.remove('hidden');
+        window.scrollTo(0, 0); // Snap to top after admin login
 
         const searchEl = document.getElementById('admin-search');
         searchEl.value = '';
@@ -518,14 +580,14 @@ export function initAdmin(users, admins) {
     }
 
     function renderAdminList() {
-        const list = document.getElementById('admin-user-list');
+        const list = document.getElementById('admin-members-list');
         list.innerHTML = '';
 
         const query = (document.getElementById('admin-search')?.value || '').trim().toLowerCase();
         const activeFilter = document.querySelector('.filter-tab.active')?.dataset.filter || 'all';
 
         const filtered = users.filter(u => {
-            const isPaired = !!localStorage.getItem('pairedUser_' + u.phone) || !!u.pairedWith;
+            const isPaired = !!u.pairedWith;
             const matchesSearch = !query || u.fullName.toLowerCase().includes(query) || u.phone.includes(query);
             const matchesFilter = activeFilter === 'all' ||
                 (activeFilter === 'pending' && !isPaired) ||
@@ -540,12 +602,8 @@ export function initAdmin(users, admins) {
 
         filtered.forEach(u => {
             let pairedObj = null;
-            const pairedStr = localStorage.getItem('pairedUser_' + u.phone);
-            if (pairedStr) {
-                pairedObj = JSON.parse(pairedStr);
-            } else if (u.pairedWith) {
+            if (u.pairedWith) {
                 pairedObj = users.find(x => x.cleanPhone === u.pairedWith);
-                if (pairedObj) localStorage.setItem('pairedUser_' + u.phone, JSON.stringify(pairedObj));
             }
 
             const card = document.createElement('div');
@@ -555,13 +613,13 @@ export function initAdmin(users, admins) {
                 ? `<span style="display:inline-flex; align-items:center; color:var(--secondary-color);"><svg class="icon-inline" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" opacity="1"><circle cx="12" cy="12" r="10"></circle></svg> Paired</span>`
                 : `<span style="display:inline-flex; align-items:center; color:#f39c12;"><svg class="icon-inline" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" opacity="1"><circle cx="12" cy="12" r="10"></circle></svg> Pending spin</span>`;
             const btnHtml = pairedObj
-                ? `<button class="reset-btn" onclick="window.__resetUser('${u.phone}','${u.fullName}')">Reset</button>`
+                ? `<button class="reset-btn" onclick="window.__resetMember('${u.phone}','${u.fullName}')">Reset</button>`
                 : `<button class="reset-btn" style="background:#555;cursor:not-allowed;" disabled>Wait</button>`;
 
             card.innerHTML = `
                 <div style="flex-grow:1; text-align:left; min-width:0;">
                     <div style="margin-bottom:8px; display:flex; align-items:flex-start; gap:10px;">
-                        <button onclick="window.__viewUserDetails('${u.phone}')" style="background:none; border:none; color:var(--primary-color); padding:0; cursor:pointer; display:flex; align-items:center; opacity:0.8; height:20px; width:20px; justify-content:center; flex-shrink:0; margin-top:1px;" title="View full details">
+                        <button onclick="window.__viewMemberDetails('${u.phone}')" style="background:none; border:none; color:var(--primary-color); padding:0; cursor:pointer; display:flex; align-items:center; opacity:0.8; height:20px; width:20px; justify-content:center; flex-shrink:0; margin-top:1px;" title="View full details">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                         </button>
                         <div style="flex:1; min-width:0;">
@@ -574,6 +632,8 @@ export function initAdmin(users, admins) {
                     ${btnHtml}
                     <button class="reset-btn" style="background:rgba(99,110,140,0.5);font-size:0.8rem;padding:8px 10px;"
                         onclick="window.__changePassword('${u.phone}','${u.fullName}')">Change password</button>
+                    <button class="reset-btn" style="background:#ff7675; color:#fff; font-size:0.8rem; padding:8px 10px;"
+                        onclick="window.__deleteMember('${u.phone}')">Delete Member</button>
                 </div>
             `;
             list.appendChild(card);
@@ -581,16 +641,12 @@ export function initAdmin(users, admins) {
     }
 
     // --- View Full Details Helper ---
-    window.__viewUserDetails = function (phone) {
+    window.__viewMemberDetails = function (phone) {
         const u = users.find(x => x.phone === phone);
         if (!u) return;
 
         let pairedText = 'No pairing yet';
-        const pStr = localStorage.getItem('pairedUser_' + phone);
-        if (pStr) {
-            const p = JSON.parse(pStr);
-            pairedText = `Paired with ${p.fullName} (${p.phone})`;
-        } else if (u.pairedWith) {
+        if (u.pairedWith) {
             const p = users.find(x => x.cleanPhone === u.pairedWith);
             if (p) pairedText = `Paired with ${p.fullName} (${p.phone})`;
         }
@@ -616,44 +672,46 @@ export function initAdmin(users, admins) {
         editBtn.classList.remove('hidden');
         editBtn.onclick = () => {
             overlay.classList.add('hidden');
-            window.__editUser(phone);
+            window.__editMember(phone);
         };
 
         overlay.classList.remove('hidden');
     };
 
     // Expose to window for inline onclick handlers in rendered cards
-    window.__resetUser = function (phone, name) {
+    window.__resetMember = function (phone, name) {
         const overlay = document.getElementById('confirm-overlay');
+        const confirmYes = document.getElementById('confirm-yes');
+        const confirmNo = document.getElementById('confirm-no');
+
         document.getElementById('confirm-message').innerText = `Reset ${name} so they can spin again?`;
+        confirmYes.innerText = 'Yes, reset';
         overlay.classList.remove('hidden');
 
-        document.getElementById('confirm-yes').onclick = () => {
-            localStorage.removeItem('pairedUser_' + phone);
+        confirmNo.onclick = () => overlay.classList.add('hidden');
 
-            const userObj = users.find(u => u.phone === phone);
-            if (userObj) userObj.pairedWith = '';
+        confirmYes.onclick = () => {
+            const memberObj = users.find(u => u.phone === phone);
+            if (memberObj) memberObj.pairedWith = '';
 
             overlay.classList.add('hidden');
             showToast(`${name} has been reset and can spin again!`);
             renderAdminList();
 
-            saveUserPairing(phone, '');
+            saveMemberPairing(phone, '');
         };
     };
 
     window.__changePassword = function (phone, name) {
-        const userObj = users.find(u => u.phone === phone);
-        const currentPass = userObj ? getEffectivePassword(userObj) : '';
+        const memberObj = users.find(u => u.phone === phone);
+        const currentPass = memberObj ? getEffectivePassword(memberObj) : '';
 
         openChangePasswordModal(phone, `Change password for ${name}`, currentPass, async (newPassword) => {
-            // 1. Instant UI update via localStorage
-            localStorage.setItem('passwordOverride_' + phone, newPassword);
             showToast(`Password for ${name} updated! Saving to sheet...`);
             renderAdminList();
 
             // 2. Persist to master Google Sheet
-            const success = await saveUserPassword(phone, newPassword);
+            const success = await saveMemberPassword(phone, newPassword);
             if (success) {
                 showToast(`Success! ${name}'s password is saved to Sheet.`);
             } else {
