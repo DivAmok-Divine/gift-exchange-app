@@ -156,3 +156,32 @@ input:checked+.slider:before {
     background: transparent;
     transform: none;
 }
+
+/* Light Mode Overrides */
+:root[data-theme="light"] .app-sidebar {
+    background: rgba(244, 246, 248, 0.98);
+    border-left: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+:root[data-theme="light"] .sidebar-header {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+:root[data-theme="light"] .close-sidebar-btn {
+    background: rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    color: var(--text-color) !important;
+}
+
+:root[data-theme="light"] .close-sidebar-btn:hover {
+    background: rgba(0, 0, 0, 0.15);
+}
+
+:root[data-theme="light"] .sidebar-menu-item:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+:root[data-theme="light"] .slider {
+    background-color: rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+}

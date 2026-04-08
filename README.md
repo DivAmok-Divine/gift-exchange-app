@@ -25,7 +25,7 @@ Spinner/
 │   ├── app.js              # Main app entry point & share logic
 │   ├── auth/
 │   │   ├── admin.js        # Admin dashboard logic
-│   │   └── login.js        # User login, auth, and alert system
+│   │   └── login.js        # Member login, auth, and alert system
 │   ├── ui/
 │   │   ├── result.js       # Pairing result card rendering
 │   │   ├── toast.js        # Toast notification system

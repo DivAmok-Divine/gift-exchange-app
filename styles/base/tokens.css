@@ -1,8 +1,250 @@
 :root {
-    --primary-color: #D4AF37; /* Gold Metallic */
-    --secondary-color: #F8E08E; /* Champagne Gold */
-    --bg-color: #050505; /* Deep Obsidian */
+    --primary-color: #D4AF37;
+    /* Gold Metallic */
+    --secondary-color: #F8E08E;
+    /* Champagne Gold */
+    --bg-color: #050505;
+    /* Deep Obsidian */
     --text-color: #fcfcfc;
     --card-bg: rgba(255, 255, 255, 0.05);
-    --card-border: rgba(212, 175, 55, 0.3); /* Gold tint border */
+    --card-border: rgba(212, 175, 55, 0.3);
+    /* Gold tint border */
+}
+
+/* ══════════════════════════════════════
+   LIGHT MODE THEME
+══════════════════════════════════════ */
+:root[data-theme="light"] {
+    --primary-color: #B58500;
+    --secondary-color: #8C6200;
+    --bg-color: #f4f6f8;
+    --text-color: #3d4852;
+    --card-bg: #ffffff;
+    --card-border: #dfe6e9;
+}
+
+/* ── Inputs ── */
+:root[data-theme="light"] input {
+    background: #ffffff !important;
+    border-color: #dfe6e9 !important;
+    color: #3d4852 !important;
+}
+
+/* ── Modals & confirm boxes ── */
+:root[data-theme="light"] .modal-content,
+:root[data-theme="light"] .confirm-box {
+    background: #ffffff !important;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12) !important;
+}
+
+:root[data-theme="light"] div[style*="background: #1e1e2f"],
+:root[data-theme="light"] div[style*="background:#1e1e2f"] {
+    background: #ffffff !important;
+}
+
+/* ── Primary text (hardcoded white → warm dark slate) ── */
+:root[data-theme="light"] [style*="color: #fcfcfc"],
+:root[data-theme="light"] [style*="color:#fcfcfc"],
+:root[data-theme="light"] [style*="color: #fff"],
+:root[data-theme="light"] [style*="color:#fff"] {
+    color: #3d4852 !important;
+}
+
+/* ── Near-black button text ── */
+:root[data-theme="light"] [style*="color: #1e1e2f"],
+:root[data-theme="light"] [style*="color:#1e1e2f"] {
+    color: #3d4852 !important;
+}
+
+/* ── Secondary / muted text (light grey → medium slate) ── */
+:root[data-theme="light"] [style*="color: #a4b0be"],
+:root[data-theme="light"] [style*="color:#a4b0be"],
+:root[data-theme="light"] [style*="color: #dcdde1"],
+:root[data-theme="light"] [style*="color:#dcdde1"] {
+    color: #6c757d !important;
+}
+
+/* ── Class-based secondary text ── */
+:root[data-theme="light"] .user-greeting,
+:root[data-theme="light"] header p,
+:root[data-theme="light"] .login-box p,
+:root[data-theme="light"] .admin-card p,
+:root[data-theme="light"] .admin-toggle {
+    color: #6c757d !important;
+}
+
+/* ── Body / inherited text / lists ── */
+:root[data-theme="light"] body,
+:root[data-theme="light"] strong,
+:root[data-theme="light"] li {
+    color: #3d4852;
+}
+
+/* ── Footer ── */
+:root[data-theme="light"] footer {
+    background: #f4f6f8 !important;
+    color: #6c757d !important;
+    border-top: 1px solid #dfe6e9 !important;
+}
+
+/* ── Top nav ── */
+:root[data-theme="light"] .top-nav {
+    background-color: #f4f6f8 !important;
+    border-bottom: 1px solid #dfe6e9 !important;
+}
+
+/* ── Paired result card ── */
+:root[data-theme="light"] .paired-card,
+:root[data-theme="light"] #capture-card {
+    background: #ffffff !important;
+    border-color: #dfe6e9 !important;
+}
+
+/* ── Inline rgba(0,0,0,*) dark backgrounds ── */
+:root[data-theme="light"] [style*="background:rgba(0,0,0"],
+:root[data-theme="light"] [style*="background: rgba(0,0,0"] {
+    background: rgba(0, 0, 0, 0.03) !important;
+}
+
+/* ── Inline semi-transparent white backgrounds ── */
+:root[data-theme="light"] [style*="background:rgba(255,255,255,0.05)"],
+:root[data-theme="light"] [style*="background: rgba(255,255,255,0.05)"],
+:root[data-theme="light"] [style*="background:rgba(255,255,255,0.07)"],
+:root[data-theme="light"] [style*="background: rgba(255,255,255,0.07)"],
+:root[data-theme="light"] [style*="background:rgba(255,255,255,0.03)"],
+:root[data-theme="light"] [style*="background: rgba(255,255,255,0.03)"] {
+    background: rgba(0, 0, 0, 0.03) !important;
+}
+
+:root[data-theme="light"] [style*="background:rgba(255,255,255,0.1)"],
+:root[data-theme="light"] [style*="background: rgba(255,255,255,0.1)"] {
+    background: rgba(0, 0, 0, 0.05) !important;
+}
+
+/* ── White inline borders → soft grey ── */
+:root[data-theme="light"] [style*="border:1px solid rgba(255,255,255"],
+:root[data-theme="light"] [style*="border: 1px solid rgba(255,255,255"] {
+    border-color: #dfe6e9 !important;
+}
+
+/* ── Search icon SVGs ── */
+:root[data-theme="light"] svg[style*="color:#a4b0be"],
+:root[data-theme="light"] svg[style*="color: #a4b0be"] {
+    color: #6c757d !important;
+}
+
+/* ── Red alert messages keep visible but slightly deeper ── */
+:root[data-theme="light"] [style*="color: #ff7675"],
+:root[data-theme="light"] [style*="color:#ff7675"] {
+    color: #c0392b !important;
+}
+
+/* ── Disabled "Wait" button (#555 bg) ── */
+:root[data-theme="light"] [style*="background:#555"],
+:root[data-theme="light"] [style*="background: #555"] {
+    background: #e0e0e0 !important;
+    color: #9e9e9e !important;
+}
+
+/* ── "Change password" grey button (rgba(99,110,140,...)) ── */
+:root[data-theme="light"] [style*="background:rgba(99,110,140"],
+:root[data-theme="light"] [style*="background: rgba(99,110,140"] {
+    background: #e9ecef !important;
+    color: #495057 !important;
+}
+
+/* ── Hardcoded #444 (grey disabled bg) ── */
+:root[data-theme="light"] [style*="background:#444"],
+:root[data-theme="light"] [style*="background: #444"] {
+    background: #e9ecef !important;
+    color: #495057 !important;
+}
+
+/* ── Modal/confirm title text ── */
+:root[data-theme="light"] .confirm-box p.confirm-message,
+:root[data-theme="light"] .confirm-box>div,
+:root[data-theme="light"] .confirm-box h3 {
+    color: #3d4852 !important;
+}
+
+/* ── Admin card user name (strong/bold) ── */
+:root[data-theme="light"] .admin-card strong {
+    color: #3d4852 !important;
+    font-weight: 700;
+}
+
+/* ── Delete button: proper red + keep text white ── */
+:root[data-theme="light"] [style*="background:#ff7675"],
+:root[data-theme="light"] [style*="background: #ff7675"] {
+    background: #e74c3c !important;
+}
+
+/* ── Clear text for active/danger buttons (White text) ── */
+:root[data-theme="light"] .reset-btn:not([disabled]):not([style*="background:rgba(99,110,140"]):not([style*="background: rgba(99,110,140"]),
+:root[data-theme="light"] .login-submit-btn,
+:root[data-theme="light"] .confirm-yes-btn,
+:root[data-theme="light"] .momo-btn,
+:root[data-theme="light"] .gift-btn,
+:root[data-theme="light"] .btn:not(.confirm-no-btn):not(.confirm-cancel-btn),
+:root[data-theme="light"] [style*="background:#e74c3c"] *,
+:root[data-theme="light"] [style*="background: #e74c3c"] * {
+    color: #ffffff !important;
+}
+
+/* ── Result card values ── */
+.result-value {
+    color: #ffffff;
+}
+
+:root[data-theme="light"] .result-value {
+    color: #3d4852 !important;
+}
+
+/* ── Clear text for grey/disabled buttons (Dark text) ── */
+:root[data-theme="light"] [disabled],
+:root[data-theme="light"] [style*="background:#555"],
+:root[data-theme="light"] [style*="background: #555"],
+:root[data-theme="light"] [style*="background:rgba(99,110,140"],
+:root[data-theme="light"] [style*="background: rgba(99,110,140"],
+:root[data-theme="light"] [style*="background:#e9ecef"],
+:root[data-theme="light"] [style*="background: #e9ecef"],
+:root[data-theme="light"] [style*="background:#444"],
+:root[data-theme="light"] [style*="background: #444"],
+:root[data-theme="light"] [style*="background:rgba(255,255,255,0.07)"],
+:root[data-theme="light"] [style*="background: rgba(255,255,255,0.07)"],
+:root[data-theme="light"] #download-preview-btn {
+    background: #e9ecef !important;
+    border-color: rgba(0, 0, 0, 0.1) !important;
+    color: #3d4852 !important;
+}
+
+:root[data-theme="light"] .reset-btn[style*="background:#555"],
+:root[data-theme="light"] .reset-btn[style*="background:rgba(99,110,140"] {
+    color: #3d4852 !important;
+}
+
+/* ── Light mode hardcoded text overrides (Secondary text) ── */
+:root[data-theme="light"] [style*="color:#dcdde1"],
+:root[data-theme="light"] [style*="color:#a4b0be"],
+:root[data-theme="light"] [style*="color: #a4b0be"],
+:root[data-theme="light"] .modal-content [style*="color:#a4b0be"],
+:root[data-theme="light"] footer[style*="color:rgba(255,255,255,0.35)"] {
+    color: #495057 !important;
+}
+
+/* ── Generic catch-all for elements with gold or red backgrounds ── */
+:root[data-theme="light"] [style*="background: var(--primary-color)"],
+:root[data-theme="light"] [style*="background:var(--primary-color)"],
+:root[data-theme="light"] [style*="background: var(--secondary-color)"],
+:root[data-theme="light"] [style*="background:var(--secondary-color)"],
+:root[data-theme="light"] [style*="background:#e74c3c"],
+:root[data-theme="light"] [style*="background: #e74c3c"] {
+    color: #ffffff !important;
+}
+
+/* Ensure strong text inside these buttons is also white */
+:root[data-theme="light"] .btn strong,
+:root[data-theme="light"] .momo-btn strong,
+:root[data-theme="light"] .gift-btn strong {
+    color: #ffffff !important;
 }

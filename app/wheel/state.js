@@ -4,7 +4,7 @@
  */
 export const state = {
     // Wheel data
-    activeUsers: [],
+    activeMembers: [],
     numSlices: 0,
     sliceAngle: 0,
     colors: ['#D4AF37', '#1a1a1a', '#F8E08E', '#333333', '#C5A028'],
@@ -22,7 +22,7 @@ export const state = {
 
     // Session
     currentWinner: null,
-    currentUser: null,
+    currentMember: null,
     testMode: false,
 
     // Event Settings (Dynamic)

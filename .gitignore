@@ -30,3 +30,4 @@ build/
 
 # Temp / test files
 test_parse.js
+.vercel

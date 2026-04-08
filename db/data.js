@@ -2,14 +2,14 @@
  * data.js — Live data layer
  * Fetches users and admins live from Google data CSVs.
  *
- * Users sheet columns:
+ * Members sheet columns:
  *   Timestamp | First Name | Last Name | Other Names | Phone Number | Date Of Birth | Email address | Password
  *
  * Admins sheet columns:
- *   Timestamp | Admin User Name | Password | Email address
+ *   Timestamp | Admin Member Name | Password | Email address
  */
 
-const USERS_CSV_URL =
+const MEMBERS_CSV_URL =
     'https://docs.google.com/spreadsheets/d/15e_BhdW-KoVZddXTd9slftkMSpJidaiVOtv5sCQX9LQ/export?format=csv&gid=1941737377';
 
 const ADMINS_CSV_URL =
@@ -22,17 +22,17 @@ const EVENTS_CSV_URL =
     'https://docs.google.com/spreadsheets/d/1PQqjAfo7fjBjLMFHTj4vCATTzmQEdlqLTWGHsLXDWi8/export?format=csv&gid=2022170814';
 
 const APPS_SCRIPT_URL =
-    'https://script.google.com/macros/s/AKfycbySiXsSvNxtiipb7gf1lklblg8xxCRqnMmsH0yzQIS1y4-nu0_wk0xvN1Idb3tj0uCk/exec';
+    'https://script.google.com/macros/s/AKfycbzBNPDCjQZg31Wz1l8pgoWZ92Bdpx9QloZV5Lavi_d4zWGy8JALXSSWXca-zqz3cD3DQ/exec';
 
 /**
  * Saves a new user or updates an existing one on the 'Form Responses 1' sheet.
  */
-export async function saveNewUser(userData) {
+export async function saveNewMember(memberData) {
     try {
         await fetch(APPS_SCRIPT_URL, {
             method: 'POST',
             mode: 'no-cors',
-            body: JSON.stringify({ ...userData, action: 'add_user' }),
+            body: JSON.stringify({ ...memberData, action: 'add_member' }),
             headers: { 'Content-Type': 'text/plain' }
         });
         return true;
@@ -45,12 +45,12 @@ export async function saveNewUser(userData) {
 /**
  * Updates an existing user on the 'Form Responses 1' sheet.
  */
-export async function updateUserOnSheet(userData) {
+export async function updateMemberOnSheet(memberData) {
     try {
         await fetch(APPS_SCRIPT_URL, {
             method: 'POST',
             mode: 'no-cors',
-            body: JSON.stringify({ ...userData, action: 'update_user' }),
+            body: JSON.stringify({ ...memberData, action: 'update_member' }),
             headers: { 'Content-Type': 'text/plain' }
         });
         return true;
@@ -65,7 +65,7 @@ export async function updateUserOnSheet(userData) {
  * phone: The unique identifier (from Column E)
  * newPassword: The value to write into Column H
  */
-export async function saveUserPassword(phone, newPassword) {
+export async function saveMemberPassword(phone, newPassword) {
     try {
         await fetch(APPS_SCRIPT_URL, {
             method: 'POST',
@@ -80,7 +80,7 @@ export async function saveUserPassword(phone, newPassword) {
     }
 }
 
-export async function saveUserPairing(phone, pairedPhone, giftType = '') {
+export async function saveMemberPairing(phone, pairedPhone, giftType = '') {
     try {
         await fetch(APPS_SCRIPT_URL, {
             method: 'POST',
@@ -109,6 +109,29 @@ export async function saveEventToSheet(eventData) {
         return true;
     } catch (err) {
         console.error('Failed to save event to sheet:', err);
+        return false;
+    }
+}
+
+/**
+ * Deletes a member from the master sheet.
+ */
+export async function deleteMemberOnSheet(phone) {
+    try {
+        console.log("SENDING DELETE FOR:", phone);
+        await fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: JSON.stringify({ 
+                phone: String(phone), 
+                action: 'delete_member',
+                timestamp: Date.now()
+            }),
+            headers: { 'Content-Type': 'text/plain' }
+        });
+        return true;
+    } catch (err) {
+        console.error('Failed to delete member from sheet:', err);
         return false;
     }
 }
@@ -170,6 +193,16 @@ function parseCSVLine(line) {
 }
 
 /**
+ * Helper to ensure names are always in Sentence Case (Title Case).
+ */
+function toTitleCase(str) {
+    if (!str) return '';
+    return str.toLowerCase().trim().split(/\s+/).map(word => {
+        return word.charAt(0).toUpperCase() + word.slice(1);
+    }).join(' ');
+}
+
+/**
  * Converts raw CSV text into an array of plain objects keyed by header row.
  */
 function parseCSV(text) {
@@ -187,9 +220,9 @@ function parseCSV(text) {
  * fullName = First Name + Other Names (if set) + Last Name
  * Falls back to [] if the sheet is unreachable.
  */
-export async function fetchUsers() {
+export async function fetchMembers() {
     try {
-        const text = await fetchWithTimeout(USERS_CSV_URL);
+        const text = await fetchWithTimeout(MEMBERS_CSV_URL);
         const rows = parseCSV(text);
 
         let pairingsMap = {};
@@ -210,7 +243,9 @@ export async function fetchUsers() {
             .filter(r => r['First Name'])
             .map(r => {
                 const nameParts = [r['First Name'], r['Other Names'], r['Last Name']]
-                    .filter(p => p && p.trim() !== '');
+                    .filter(p => p && p.trim() !== '')
+                    .map(toTitleCase); // Ensure Sentence Case
+
                 const userPhone = r['Phone Number'] || '';
                 const cleanPhone = userPhone.replace(/^0+/, '').replace(/\s+/g, '');
                 const pairingData = pairingsMap[cleanPhone] || { pairedPhone: '', giftType: '' };
@@ -226,27 +261,26 @@ export async function fetchUsers() {
                 };
             });
     } catch (err) {
-        console.warn('⚠️ fetchUsers failed:', err.message);
+        console.warn('⚠️ fetchMembers failed:', err.message);
         return [];
     }
 }
 
-/**
- * Fetches and returns admins from the Google Sheet.
- * Column: "Admin User Name" (not "Name").
- * Falls back to [] if the sheet is unreachable.
- */
 export async function fetchAdmins() {
     try {
         const text = await fetchWithTimeout(ADMINS_CSV_URL);
         const rows = parseCSV(text);
         return rows
-            .filter(r => r['Admin User Name'])
-            .map(r => ({
-                username: r['Admin User Name'] || '',
-                password: r['Password'] || '',
-                email: r['Email address'] || '',
-            }));
+            .map(r => {
+                // Support both "Member Name" and "User Name" for compatibility
+                const username = r['Admin Member Name'] || r['Admin User Name'] || '';
+                return {
+                    username: username.trim(),
+                    password: r['Password'] || '',
+                    email: r['Email address'] || '',
+                };
+            })
+            .filter(a => a.username); // Only return valid admin entries
     } catch (err) {
         console.warn('⚠️ fetchAdmins failed:', err.message);
         return [];

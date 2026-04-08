@@ -1,7 +1,7 @@
-import { fetchUsers, fetchAdmins, fetchEvents } from '../db/data.js';
+import { fetchMembers, fetchAdmins, fetchEvents } from '../db/data.js';
 import { state } from './wheel/state.js';
 
-import { initActiveUsers } from './wheel/init.js';
+import { initActiveMembers } from './wheel/init.js';
 import { drawWheel } from './wheel/draw.js';
 import { spin } from './wheel/spin.js';
 import { initDrag } from './wheel/drag.js';
@@ -13,7 +13,7 @@ async function boot() {
     try {
         // Fetch users, admins, and events from Google data in parallel
         const [users, admins, events] = await Promise.all([
-            fetchUsers(),
+            fetchMembers(),
             fetchAdmins(),
             fetchEvents()
         ]);
@@ -35,8 +35,8 @@ async function boot() {
 
             const welcomeH3 = document.getElementById('welcome-instruction-title');
             if (welcomeH3) {
-                 const svg = welcomeH3.querySelector('svg')?.outerHTML || '';
-                 welcomeH3.innerHTML = `${svg} Welcome to the ${newName}!`;
+                const svg = welcomeH3.querySelector('svg')?.outerHTML || '';
+                welcomeH3.innerHTML = `${svg} Welcome to the ${newName}!`;
             }
             document.title = newName + ' | Akosua Betty Ministries';
         }
@@ -45,7 +45,7 @@ async function boot() {
         document.getElementById('loading-screen').style.display = 'none';
 
         // --- Boot sequence ---
-        initActiveUsers(users);
+        initActiveMembers(users);
         drawWheel();
         document.getElementById('spin-btn').addEventListener('click', spin);
         initDrag();
@@ -76,7 +76,7 @@ window.__sharePairing = async (name, phone) => {
         // Pulse the reward buttons to guide the user
         const rewardBtns = card.querySelectorAll('.no-capture button');
         rewardBtns.forEach(b => {
-             b.style.animation = 'pulse-gold 0.5s ease-in-out 3';
+            b.style.animation = 'pulse-gold 0.5s ease-in-out 3';
         });
         return;
     }
@@ -92,7 +92,7 @@ window.__sharePairing = async (name, phone) => {
         if (actions) actions.style.display = 'none';
         if (shareBtn) shareBtn.style.display = 'none';
         if (captureLogo) captureLogo.style.display = 'flex';
-        
+
         const originalBg = card.style.background;
         card.style.background = '#1e1e2f'; // Solid bg for capture
 
@@ -110,7 +110,7 @@ window.__sharePairing = async (name, phone) => {
         card.style.background = originalBg;
 
         const dataUrl = canvas.toDataURL('image/png');
-        
+
         // Open the preview modal
         const previewOverlay = document.getElementById('image-preview-overlay');
         const previewImg = document.getElementById('preview-capture-img');
@@ -122,10 +122,25 @@ window.__sharePairing = async (name, phone) => {
 
         // Handle Download
         downloadBtn.onclick = () => {
-            const link = document.createElement('a');
-            link.href = dataUrl;
-            link.download = `Greeting_${name.replace(/\s+/g, '_')}.png`;
-            link.click();
+            canvas.toBlob((blob) => {
+                if (!blob) return;
+                const eventSlug = (state.activeEvent?.name || 'GiftExchange').replace(/\s+/g, '_');
+                const winnerSlug = name.replace(/\s+/g, '_');
+                const fileName = `${eventSlug}_Pairing_${winnerSlug}.png`;
+                
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = fileName;
+                document.body.appendChild(link);
+                link.click();
+                
+                // Clean up
+                setTimeout(() => {
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                }, 100);
+            }, 'image/png');
         };
 
         // Handle Native Share
@@ -135,19 +150,22 @@ window.__sharePairing = async (name, phone) => {
                     import('./ui/toast.js').then(m => m.showToast('Could not create image file. ⚠️'));
                     return;
                 }
-                
-                const fileName = `Greeting_${name.replace(/\s+/g, '_')}.png`;
+
+                const eventSlug = (state.activeEvent?.name || 'GiftExchange').replace(/\s+/g, '_');
+                const winnerSlug = name.replace(/\s+/g, '_');
+                const fileName = `${eventSlug}_Pairing_${winnerSlug}.png`;
                 const file = new File([blob], fileName, { type: 'image/png' });
-                
+
                 // CRITICAL: Check if sharing this specific file is actually supported
                 if (navigator.canShare && navigator.canShare({ files: [file] })) {
                     try {
+                        const eventTitle = state.activeEvent?.name || 'My Gift Pairing';
                         await navigator.share({
                             files: [file],
-                            title: 'My Gift Pairing',
+                            title: eventTitle,
                             text: `I've been paired with ${name}! 🎁`
                         });
-                    } catch (err) { 
+                    } catch (err) {
                         console.warn('Native share failed:', err);
                         // If it's a real failure (not user cancelling), show error
                         if (err.name !== 'AbortError') {
@@ -171,5 +189,54 @@ window.__sharePairing = async (name, phone) => {
     }
 };
 
-boot();
+// --- Global Theme Toggle Logic ---
+function initThemeToggle() {
+    const buttons = document.querySelectorAll('.theme-toggle-btn');
+
+    const updateAllToggles = (isLight) => {
+        buttons.forEach(btn => {
+            const sunIcon = btn.querySelector('.theme-icon-sun');
+            const moonIcon = btn.querySelector('.theme-icon-moon');
+            const label = btn.querySelector('.theme-label');
+
+            if (isLight) {
+                sunIcon.style.display = 'none';
+                moonIcon.style.display = 'block';
+                label.innerText = 'Switch to Dark Mode';
+            } else {
+                sunIcon.style.display = 'block';
+                moonIcon.style.display = 'none';
+                label.innerText = 'Switch to Light Mode';
+            }
+        });
+    };
+
+    buttons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const root = document.documentElement;
+            const isLight = root.getAttribute('data-theme') === 'light';
+
+            if (isLight) {
+                root.removeAttribute('data-theme');
+                updateAllToggles(false);
+            } else {
+                root.setAttribute('data-theme', 'light');
+                updateAllToggles(true);
+            }
+
+            // Also close any active sidebars
+            setTimeout(() => {
+                const overlays = document.querySelectorAll('.sidebar-overlay');
+                overlays.forEach(overlay => {
+                    if (overlay.classList.contains('active')) overlay.click();
+                });
+            }, 150);
+        });
+    });
+}
+
+// Start the app
+boot().then(() => {
+    initThemeToggle();
+});
 
